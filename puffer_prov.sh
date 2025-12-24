@@ -1,15 +1,22 @@
 #!/bin/bash
-set -ex
-exec > >(tee /workspace/provision.log) 2>&1
+set -euo pipefail
 
-# Cause the script to exit on failure.
-set -eo pipefail
+# log everything to a file (no tee)
+exec > /workspace/provision.log 2>&1
+set -x
 
-# Activate the main virtual environment
-. /venv/main/bin/activate
+echo "START $(date)"
+echo "SHELL=$SHELL"
+echo "BASH_VERSION=${BASH_VERSION:-not-bash}"
+which uv || true
+which git || true
+ls -la /venv/main/bin/activate || true
 
-#
-cd /workspace/
+# Activate venv (this is a likely failure point)
+source /venv/main/bin/activate
+
+cd /workspace
 git clone https://github.com/PufferAI/PufferLib.git
 cd PufferLib
 uv pip install -e . --no-build-isolation
+echo "DONE $(date)"
